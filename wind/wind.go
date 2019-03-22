@@ -8,14 +8,14 @@ import (
 )
 
 // Bean ...
-type Bean struct {
+type BeanDefinition struct {
 	Name     string
 	beanType reflect.Type
 }
 
 // BeanFactory ...
 type BeanFactory struct {
-	beans map[string]Bean
+	beans map[string]BeanDefinition
 }
 
 // CreateBeanFactory ...
@@ -29,7 +29,7 @@ func (bf *BeanFactory) RegisterBean(t reflect.Type) (err error) {
 		err = errors.New("argument must be a Struct Type")
 	} else {
 		beanName := t.Name()
-		bf.beans[beanName] = Bean{Name: beanName, beanType: t}
+		bf.beans[beanName] = BeanDefinition{Name: beanName, beanType: t}
 	}
 	return
 }
@@ -67,6 +67,10 @@ func (bf *BeanFactory) GetBean(name string) (ins interface{}, ok bool) {
 		ins = e.Interface()
 	}
 	return
+}
+
+func (bf *BeanFactory) GetBeanDefinition(name string) (BeanDefinition, ok) {
+	return bf.beans[name]
 }
 
 // Find all tag pair named with '@'

@@ -1,0 +1,29 @@
+<header>
+    <trmno_int>80000000</trmno_int>
+    <docnum>2019</docnum>
+    <vender_id>2019</vender_id>
+    <vender_name>test</vender_name>
+    <payment_ref_num>1</payment_ref_num>
+    <vendor_dlv_num>2</vendor_dlv_num>
+    <customer_mat_id>2</customer_mat_id>
+    <quantity>33</quantity>
+    <unit>10</unit>
+    <item_net_value>2</item_net_value>
+    <currency>CNY</currency>
+    <items>
+        <item>
+            <paymentItemKey>
+                <itemnum>2019</itemnum>
+            </paymentItemKey>
+            <vender_id>2019</vender_id>
+            <vender_name>test</vender_name>
+            <payment_ref_num>1</payment_ref_num>
+            <vendor_dlv_num>2</vendor_dlv_num>
+            <customer_mat_id>2</customer_mat_id>
+            <quantity>33</quantity>
+            <unit>10</unit>
+            <item_net_value>2</item_net_value>
+            <currency>CNY</currency>
+        </item>
+    </items>
+</header>
