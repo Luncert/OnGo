@@ -2,7 +2,6 @@ package wind
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 )
 
@@ -15,14 +14,24 @@ func (p *Person) hello() {
 }
 
 func TestWind(t *testing.T) {
-	_type := reflect.TypeOf(Person{})
 	bf := CreateBeanFactory()
-	err := bf.RegisterBean(_type)
-	if err != nil {
-		fmt.Println(err)
-	} else if bean, ok := bf.GetBean("Person"); ok {
-		if p, ok := bean.(Person); ok {
-			p.hello()
+
+	if err := bf.RegisterBean("name", "Luncert"); err != nil {
+		t.Error(err)
+	}
+
+	if err := bf.RegisterBean("Person", Person{}); err != nil {
+		t.Error(err)
+	} else {
+		bean, err := bf.GetBean("Person")
+		if err == nil {
+			if p, ok := bean.(Person); ok {
+				p.hello()
+			} else {
+				t.Error(err)
+			}
+		} else {
+			t.Error(err)
 		}
 	}
 }

@@ -72,5 +72,5 @@ func (factory *defaultListableBeanFactory) registerBeanDefinition(beanName strin
 }
 
 func (factory *defaultListableBeanFactory) removeBeanDefinition(beanName string) error {
-
+	return nil
 }
