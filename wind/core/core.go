@@ -1,4 +1,4 @@
-package wind
+package core
 
 import (
 	"errors"
@@ -24,6 +24,7 @@ type BeanDefinition struct {
 // BeanFactory ...
 type BeanFactory struct {
 	beans        map[string]BeanDefinition
+	beanTypes    map[reflect.Type]string
 	annoHandlers map[Annotation]AnnotationHandler
 }
 
@@ -31,12 +32,13 @@ type BeanFactory struct {
 func CreateBeanFactory() *BeanFactory {
 	bf := &BeanFactory{
 		beans:        make(map[string]BeanDefinition),
+		beanTypes:    make(map[reflect.Type]string),
 		annoHandlers: make(map[Annotation]AnnotationHandler),
 	}
 	bf.RegisterAnnotationHandler(Annotation("Autowired"),
 		func(name string, _type reflect.Type, field reflect.Value) (err error) {
 			var bean interface{}
-			if bean, err = bf.GetBean(name); err == nil {
+			if bean, err = bf.GetBeanByType(_type); err == nil {
 				switch _type.Kind() {
 				case reflect.String:
 					if b, ok := bean.(string); ok {
@@ -64,16 +66,22 @@ func (bf *BeanFactory) RegisterAnnotationHandler(anno Annotation, handler Annota
 func (bf *BeanFactory) RegisterBean(beanName string, any interface{}) (err error) {
 	_type := reflect.TypeOf(any)
 	if len(beanName) == 0 {
-		beanName = strings.ToLower(_type.Name())
-	} else {
-		beanName = strings.ToLower(beanName)
+		beanName = _type.Name()
 	}
+	beanName = strings.ToLower(beanName)
 
-	kind := _type.Kind()
-	if kind == reflect.Struct {
-		bf.beans[beanName] = BeanDefinition{beanName, _type, nil}
-	} else if kind == reflect.String {
-		bf.beans[beanName] = BeanDefinition{beanName, _type, any}
+	if _, ok := bf.beans[beanName]; ok {
+		err = fmt.Errorf("BeanName existed: %s (BeanName is case insensitive)", beanName)
+	} else {
+		kind := _type.Kind()
+		var beanDef BeanDefinition
+		if kind == reflect.Struct {
+			beanDef = BeanDefinition{beanName, _type, nil}
+		} else if kind == reflect.String {
+			beanDef = BeanDefinition{beanName, _type, any}
+		}
+		bf.beans[beanName] = beanDef
+		bf.beanTypes[_type] = beanName
 	}
 	return
 }
@@ -91,6 +99,8 @@ func (bf *BeanFactory) GetBean(name string) (ins interface{}, err error) {
 			e := reflect.New(bean.beanType).Elem()
 			// 根据BeanType去扫描Bean的所有字段的Tag
 			_type := bean.beanType
+
+			// scan fields
 			if numField := _type.NumField(); numField > 0 {
 				for i := 0; i < numField; i++ {
 					f := _type.Field(i)
@@ -109,6 +119,13 @@ func (bf *BeanFactory) GetBean(name string) (ins interface{}, err error) {
 						}
 					}
 				}
+
+				// TODO: scan methods
+				// if numMethod := _type.NumMethod(); numMethod > 0 {
+				// 	for i := 0; i < numMethod; i++ {
+				// 		fmt.Println(_type.Method(i))
+				// 	}
+				// }
 			}
 			ins = e.Interface()
 		} else if kind == reflect.String {
@@ -116,6 +133,17 @@ func (bf *BeanFactory) GetBean(name string) (ins interface{}, err error) {
 		}
 	} else {
 		err = fmt.Errorf("No bean named with \"%s\"", name)
+	}
+	return ins, err
+}
+
+// TODO: fix, what if there two bean with the same type and different name
+// GetBeanByType ...
+func (bf *BeanFactory) GetBeanByType(_type reflect.Type) (ins []interface{}, err error) {
+	if beanName, ok := bf.beanTypes[_type]; ok {
+		ins, err = bf.GetBean(beanName)
+	} else {
+		err = fmt.Errorf("No bean qualified with type (%v)", _type)
 	}
 	return ins, err
 }
@@ -180,3 +208,5 @@ func (bf *BeanFactory) findAllAnnotations(tag reflect.StructTag) (ret []string, 
 	}
 	return
 }
+
+// TODO: implementation Configuration
